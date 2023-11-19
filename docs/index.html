@@ -1,11 +1,50 @@
 <html>
 <head>
 <title>FactGrid Cuneiform Viewer</title>
+<link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@recogito/recogito-js@1.7.1/dist/recogito.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@recogito/recogito-js@1.7.1/dist/recogito.min.js"></script>
+<script src="nuolenna.js"></script><script src="recogito-semantic-tags.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
 </head>
 <body>
 <h1>FactGrid Cuneiform Viewer</h1>
 
-<select id="texts"></select>
+<select id="tablets"></select>
+<script>
+factGridUrl="https://database.factgrid.de/sparql"
+wikidataUrl = "https://query.wikidata.org/sparql"
 
+function loadTabletSelect(data){
+	result=""
+	if(data.length==0){
+		spanitem.attr("title",word+" not found in Wikidata")
+		wordinfocache[word]=word+" not found in Wikidata"
+	}else{
+		result+=""
+		for(item in data){
+			result+="<option value=\""+data[item]["tablet"]+"\">"+data[item]["tabletLabel"]+"</option>"
+		}
+		$('#tablets').html(result)
+	}
+}
+
+function tabletsFromFactGrid(){
+		var sparql = `
+			  SELECT ?tablet ?tabletLabel WHERE {
+			  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+              ?tablet wdt:P2 wd:Q512006.
+             } ORDER BY ?tabletLabel
+		  `;
+		  d3.sparql(factGridUrl, sparql).then((data) => {
+		    //console.log(data);	
+			loadTabletSelect(data)
+		  })
+	}
+	
+
+tabletsFromFactGrid()
+</script>
 </body>
 </html>
