@@ -11,7 +11,9 @@
 <body>
 <h1>FactGrid Cuneiform Viewer</h1>
 
-<select id="tablets"></select>
+<select id="tablets" onchange="getTabletDetails()"></select>
+<table id="tabletdata" border=1>
+</table>
 <script>
 factGridUrl="https://database.factgrid.de/sparql"
 wikidataUrl = "https://query.wikidata.org/sparql"
@@ -29,6 +31,48 @@ function loadTabletSelect(data){
 		$('#tablets').html(result)
 	}
 }
+
+function showTabletData(data){
+	$('tabletdata').html("")
+	result=""
+	if(data.length==0){
+		spanitem.attr("title",word+" not found in Wikidata")
+		wordinfocache[word]=word+" not found in Wikidata"
+	}else{
+		result+=""
+		lastprop=""
+		first=true
+		for(item in data){
+			if(lastprop==data[item]["rel"]){
+				result+="<li><a href=\""+data[item]["val"]+"\">"+data[item]["valLabel"]+"</a></li>"
+			}else if(first){
+				result+="<tr><td><a href=\""+data[item]["rel"]+"\" target=\"_blank\">"+data[item]["relLabel"]+"</a></td><td><ul><li><a href=\""+data[item]["val"]+"\">"+data[item]["valLabel"]+"</a></li>"
+				first=false
+			}else{
+				result+="</ul></td></tr><tr><td><a href=\""+data[item]["rel"]+"\" target=\"_blank\">"+data[item]["relLabel"]+"</a></td><td><ul><li><a href=\""+data[item]["val"]+"\">"+data[item]["valLabel"]+"</a></li>"
+			}
+			lastprop=data[item]["rel"]		
+		}
+		result+="</ul></td></tr>"
+		$('#tabletdata').html(result)
+	}
+}
+
+function getTabletDetails(){
+		console.log("onchange")
+		tabletid=$('#tablets').val()
+		var sparql = `
+			  SELECT ?rel ?relLabel ?val ?valLabel WHERE {
+			  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+              <${tabletid}> ?rel ?val .
+             }
+		  `;
+		  d3.sparql(factGridUrl, sparql).then((data) => {
+		    //console.log(data);	
+			showTabletData(data)
+		  })
+	}
+	
 
 function tabletsFromFactGrid(){
 		var sparql = `
